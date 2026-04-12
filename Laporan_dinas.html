@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Laporan Dinas Banjarsari</title>
+
+<style>
+body { font-family: monospace; padding: 15px; background:#f5f5f5; }
+
+label {
+  font-size: 32px;
+  font-weight: bold;
+}
+
+select {
+  width: 100%;
+  margin: 20px 0;
+  padding: 55px;
+  font-size: 34px;
+  border-radius: 20px;
+}
+
+button {
+  padding:70px;
+  font-size:34px;
+  border-radius:24px;
+  background:#25D366;
+  color:#fff;
+  width:100%;
+}
+
+.input-jalur {
+  width: 100%;
+  margin: 15px 0;
+  padding: 28px;
+  font-size: 24px;
+}
+
+.checkbox {
+  transform: scale(2.2);
+  margin: 15px 0;
+}
+
+.error { border:5px solid red; background:#ffe5e5; }
+</style>
+</head>
+
+<body>
+
+<h2>Laporan Dinas Banjarsari</h2>
+
+<select id="shift">
+<option value="">Pilih Shift</option>
+<option>Pagi</option>
+<option>Siang</option>
+<option>Malam</option>
+</select>
+
+<label>PPKA</label>
+<select id="ppka" onchange="syncAll()"></select>
+<input type="checkbox" class="checkbox" id="chk_ppka" onchange="toggle('ppka')"> Job PPKA
+<select id="m_ppka" style="display:none;" onchange="syncAll()"></select>
+
+<label>PLR 1</label>
+<select id="plr1" onchange="syncAll()"></select>
+
+<label>PLR 2</label>
+<select id="plr2" onchange="syncAll()"></select>
+<input type="checkbox" class="checkbox" id="chk_plr" onchange="toggle('plr')"> Job PLR
+<select id="m_plr" style="display:none;" onchange="syncAll()"></select>
+
+<label>PRS</label>
+<select id="prs" onchange="syncAll()"></select>
+<input type="checkbox" class="checkbox" id="chk_prs" onchange="toggle('prs')"> Job PRS
+<select id="m_prs" style="display:none;" onchange="syncAll()"></select>
+
+<label>KAMTIB</label>
+<select id="sec"></select>
+
+<select id="cuaca">
+<option value="">Pilih Cuaca</option>
+<option>Cerah</option>
+<option>Berawan</option>
+<option>Hujan</option>
+</select>
+
+<input id="j1" class="input-jalur" placeholder="Jalur I">
+<input id="j2" class="input-jalur" placeholder="Jalur II">
+<input id="j3" class="input-jalur" placeholder="Jalur III">
+<input id="j4" class="input-jalur" placeholder="Jalur Badug">
+
+<button onclick="kirimWA()">Kirim Laporan Dinas</button>
+
+<script>
+
+/* MASTER ORANG (ID GLOBAL) */
+const ORANG = {
+"Hendi Putra": "+62 821-8671-0886",
+"Wahyu Ramanda": "+62 838-0258-1922",
+"Makmun": "+62 812-8265-9816",
+"Nicko Ramadhan": "+62 813-7788-7874",
+"Iqbal Mohamad Alim": "+62 813-3228-3567",
+"Diky Yoga Pratama": "+62 889-9291-2004",
+"Nandika Maulana": "+62 857-2238-9582",
+"Eric Fadhilah Nopani": "+62 821-8653-5108",
+"Oktapian Cahaya Bangun": "+62 857-2724-9619",
+"Fajar Prayogo": "+62 813-9045-3960",
+"Sujono": "+62 852-4331-3449",
+"Deny Setiawan": "+62 813-7315-9093",
+"APRIANDI": "+62 812-7136-7895",
+"M. Fachri Fane": "+62 899-2013-753",
+"Ratanca Yuda": "+62 813-6664-6237",
+"Tri Ramadani": "+62 895-3648-42705",
+"Akhirudin Akbar": "+62 852-6813-9392",
+"Bambang Ardiansyah": "+62 852-7335-9369"
+};
+
+const MAGANG = {
+"Rio Sandy Prasetya": "+62 819-3166-7828",
+"Eksan Raju Setiyanto": "+62 895-0291-0549",
+"Ardi Dwi Wijayanto": "+62 831-5490-1907",
+"M. Fariz Al Djibran": "+62 896-2532-9266",
+"M. Atrin Nelson": "+62 0851-5542-3443",
+"M. Yose Al Kautsar": "+62 819-2906-6339",
+"M. Rafi Al Munawar": "+62 821-8003-2555"
+};
+
+const KAMTIB = {
+"Sulaiman": "+62 858-3816-1507",
+"Yansa": "+62 882-7750-8161",
+"Budianto": "+62 812-7480-4443",
+"M. Rohmat Hidayat": "+62 856-0932-3523"
+};
+
+/* ROLE TERPISAH */
+const ROLE = {
+ppka: ["Hendi Putra","Wahyu Ramanda","Makmun","Nicko Ramadhan","Akhirudin Akbar","Bambang Ardiansyah"],
+plr: ["Iqbal Mohamad Alim","Diky Yoga Pratama","Nandika Maulana","Eric Fadhilah Nopani","Oktapian Cahaya Bangun","Fajar Prayogo","Sujono","Deny Setiawan","Akhirudin Akbar","Bambang Ardiansyah"],
+prs: ["APRIANDI","M. Fachri Fane","Ratanca Yuda","Tri Ramadani","Akhirudin Akbar","Bambang Ardiansyah"]
+};
+
+/* LOAD */
+function load(id,list){
+let el=document.getElementById(id);
+el.innerHTML='<option value="">-- pilih --</option>';
+list.forEach(n=>{
+let o=document.createElement("option");
+o.value=n;
+o.text=n;
+el.appendChild(o);
+});
+}
+
+load("ppka",ROLE.ppka);
+load("plr1",ROLE.plr);
+load("plr2",ROLE.plr);
+load("prs",ROLE.prs);
+load("sec",Object.keys(KAMTIB));
+load("m_ppka",Object.keys(MAGANG));
+load("m_plr",Object.keys(MAGANG));
+load("m_prs",Object.keys(MAGANG));
+
+function toggle(r){
+document.getElementById("m_"+r).style.display =
+document.getElementById("chk_"+r).checked ? "block":"none";
+}
+
+/* ANTI DOUBLE GLOBAL */
+function syncAll(){
+let ids=["ppka","plr1","plr2","prs","m_ppka","m_plr","m_prs"];
+let used=[];
+
+ids.forEach(id=>{
+let v=document.getElementById(id).value;
+if(v) used.push(v);
+});
+
+ids.forEach(id=>{
+let el=document.getElementById(id);
+for(let opt of el.options){
+if(!opt.value) continue;
+opt.disabled = used.includes(opt.value) && opt.value!==el.value;
+}
+});
+}
+
+/* VALID */
+function valid(){
+let ids=["shift","ppka","plr1","plr2","prs","sec","cuaca"];
+let ok=true;
+ids.forEach(id=>{
+let el=document.getElementById(id);
+if(!el.value){ el.classList.add("error"); ok=false;}
+else el.classList.remove("error");
+});
+return ok;
+}
+
+/* MAIN */
+function kirimWA(){
+
+if(!valid()) return;
+
+let shift=document.getElementById("shift").value;
+let cuaca=document.getElementById("cuaca").value;
+
+let ppka=document.getElementById("ppka").value;
+let plr1=document.getElementById("plr1").value;
+let plr2=document.getElementById("plr2").value;
+let prs=document.getElementById("prs").value;
+let sec=document.getElementById("sec").value;
+
+let txt=`*Laporan ${shift} Stasiun Banjarsari*
+Hari/Tanggal : ${new Date().toLocaleDateString("id-ID",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}
+
+A. PERKA & LANGSIRAN : Mancarli
+■ PPKA : ${ppka}
+HP : ${ORANG[ppka]}`;
+
+if(chk_ppka.checked){
+let m=document.getElementById("m_ppka").value;
+if(m) txt+=`\n■ Job PPKA : ${m}\nHP : ${MAGANG[m]}`;
+}
+
+txt+=`
+
+■ PLR 1 : ${plr1}
+HP : ${ORANG[plr1]}
+■ PLR 2 : ${plr2}
+HP : ${ORANG[plr2]}`;
+
+if(chk_plr.checked){
+let m=document.getElementById("m_plr").value;
+if(m) txt+=`\n■ Job PLR : ${m}\nHP : ${MAGANG[m]}`;
+}
+
+txt+=`
+
+■ PRS : ${prs}
+HP : ${ORANG[prs]}`;
+
+if(chk_prs.checked){
+let m=document.getElementById("m_prs").value;
+if(m) txt+=`\n■ Job PRS : ${m}\nHP : ${MAGANG[m]}`;
+}
+
+txt+=`
+
+Kondisi Perka Singkat :
+■ Administrasi Perka Tertib
+■ Kondisi Peralatan  Baik 
+
+B. KAMTIB :
+■ Security : ${sec}
+HP : ${KAMTIB[sec]}
+
+C. Cuaca : ${cuaca}
+
+*Update Posisi Jalur Banjarsari :*
+■ Jalur I : ${j1.value||"Kosong"}
+■ Jalur II : ${j2.value||"Kosong"}
+■ Jalur III : ${j3.value||"Kosong"}
+■ Jalur Badug : ${j4.value||"Kosong"}
+
+Demikian Laporan ${shift} Stasiun Banjarsari, Terima Kasih.`;
+
+window.open("https://wa.me/62882009330707?text="+encodeURIComponent(txt));
+}
+
+</script>
+
+</body>
+</html>
