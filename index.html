@@ -122,16 +122,27 @@ function autoWaktu(){
   window.tanggalOtomatis = tanggal;
 }
 
-/* FORMAT RAPI (NBSP FIX WA) */
-function rapi(label, value){
+/* FORMAT RAPI BARU (ALIGN TITIK DUA PRESISI) */
+function rapi(label, value, mode="A"){
   if(label === "HP"){
-    return `■ ${label} : ${value}`;
+    return `HP : ${value}`;
   }
 
-  let panjang = 14;
-  let spasi = "\u00A0".repeat(Math.max(0, panjang - label.length));
+  let groups = {
+    A: ["PPKA","Job PPKA","PLR","PLR 1","PLR 2","Job PLR","PRS","Job PRS"],
+    B: ["1 Personil Security"],
+    J: ["Jalur I","Jalur II","Jalur III","Jalur Badug"]
+  };
 
-  return `■ ${label}${spasi}: ${value}`;
+  let list = groups[mode];
+
+  // panjang maksimum + 2 spasi sebelum titik dua
+  let max = Math.max(...list.map(l => l.length)) + 2;
+
+  let kiri = `■ ${label}`;
+  let spasi = " ".repeat(max - label.length);
+
+  return `${kiri}${spasi}: ${value}`;
 }
 
 /* MASTER ORANG (ID GLOBAL) */
@@ -257,45 +268,44 @@ let plr1=document.getElementById("plr1").value;
 let plr2=document.getElementById("plr2").value;
 let prs=document.getElementById("prs").value;
 let sec=document.getElementById("sec").value;
+let tgl = (window.tanggalOtomatis || new Date());
+let hari = tgl.toLocaleDateString("id-ID",{weekday:"long"});
+let tanggal = tgl.toLocaleDateString("id-ID",{day:"numeric",month:"long",year:"numeric"});
 
 let txt=`*Laporan ${shift} Stasiun Banjarsari*
-Hari/Tanggal : ${
-  (window.tanggalOtomatis || new Date()).toLocaleDateString("id-ID",{weekday:"long"})
-}/${
-  (window.tanggalOtomatis || new Date()).toLocaleDateString("id-ID",{day:"numeric",month:"long",year:"numeric"})
-}
+Hari/Tanggal : ${hari}/${tanggal}
 
 A. PERKA & LANGSIRAN : Mancarli
-${rapi("PPKA", ppka)}
+${rapi("PPKA", ppka, "A")}
 ${rapi("HP", ORANG[ppka])}`;
 
 if(chk_ppka.checked){
 let m=document.getElementById("m_ppka").value;
-if(m) txt+=`\n${rapi("Job PPKA", m)}\n${rapi("HP", MAGANG[m])}`;
+if(m) txt+=`\n${rapi("Job PPKA", m, "A")}\n${rapi("HP", MAGANG[m])}`;
 }
 
 txt+=`
 ${
   plr2 === "Kosong"
-  ? `${rapi("PLR", plr1)}\n${rapi("HP", ORANG[plr1])}`
-  : `${rapi("PLR 1", plr1)}\n${rapi("HP", ORANG[plr1])}\n${rapi("PLR 2", plr2)}\n${rapi("HP", ORANG[plr2])}`
+  ? `${rapi("PLR", plr1, "A")}\n${rapi("HP", ORANG[plr1])}`
+  : `${rapi("PLR 1", plr1, "A")}\n${rapi("HP", ORANG[plr1])}\n${rapi("PLR 2", plr2, "A")}\n${rapi("HP", ORANG[plr2])}`
 }`;
 
 if(chk_plr.checked){
 let m1=document.getElementById("m_plr").value;
 let m2=document.getElementById("m_plr2").value;
 
-if(m1) txt+=`\n${rapi("Job PLR", m1)}\n${rapi("HP", MAGANG[m1])}`;
-if(m2) txt+=`\n${rapi("Job PLR", m2)}\n${rapi("HP", MAGANG[m2])}`;
+if(m1) txt+=`\n${rapi("Job PLR", m1, "A")}\n${rapi("HP", MAGANG[m1])}`;
+if(m2) txt+=`\n${rapi("Job PLR", m2, "A")}\n${rapi("HP", MAGANG[m2])}`;
 }
 
 txt+=`
-${rapi("PRS", prs)}
+${rapi("PRS", prs, "A")}
 ${rapi("HP", ORANG[prs])}`;
 
 if(chk_prs.checked){
 let m=document.getElementById("m_prs").value;
-if(m) txt+=`\n${rapi("Job PRS", m)}\n${rapi("HP", MAGANG[m])}`;
+if(m) txt+=`\n${rapi("Job PRS", m, "A")}\n${rapi("HP", MAGANG[m])}`;
 }
 
 txt+=`
@@ -306,15 +316,15 @@ Kondisi Perka Singkat :
 
 B. KAMTIB :
 ■ Kondusif dan Mancarli
-${rapi("1 Personil Security", sec)}
+${rapi("1 Personil Security", sec, "B")}
 
 C. Cuaca : ${cuaca}
 
 *Update Posisi Jalur Banjarsari :*
-${rapi("Jalur I", j1.value||"Kosong")}
-${rapi("Jalur II", j2.value||"Kosong")}
-${rapi("Jalur III", j3.value||"Kosong")}
-${rapi("Jalur Badug", j4.value||"Kosong")}
+${rapi("Jalur I", j1.value||"Kosong", "J")}
+${rapi("Jalur II", j2.value||"Kosong", "J")}
+${rapi("Jalur III", j3.value||"Kosong", "J")}
+${rapi("Jalur Badug", j4.value||"Kosong", "J")}
 
 Demikian Laporan ${shift} Stasiun Banjarsari, Terima Kasih.`;
 
