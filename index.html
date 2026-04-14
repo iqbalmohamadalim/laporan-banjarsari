@@ -106,15 +106,123 @@ function autoWaktu(){
 
   if(jam >= 0 && jam <= 6){
     shift = "Pagi";
-  } 
-  else if(jam >= 7 && jam <= 14){
-    shift = "Siang";
-  } 
-  else if(jam >= 15 && jam <= 22){
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Laporan Dinas Banjarsari</title>
+
+<style>
+body { font-family: monospace; padding: 15px; background:#f5f5f5; }
+
+label {
+  font-size: 32px;
+  font-weight: bold;
+}
+
+select {
+  width: 100%;
+  margin: 20px 0;
+  padding: 55px;
+  font-size: 34px;
+  border-radius: 20px;
+}
+
+#shift { display:none; }
+
+button {
+  padding:70px;
+  font-size:34px;
+  border-radius:24px;
+  background:#25D366;
+  color:#fff;
+  width:100%;
+}
+
+.input-jalur {
+  width: 100%;
+  margin: 15px 0;
+  padding: 28px;
+  font-size: 24px;
+}
+
+.checkbox {
+  transform: scale(2.2);
+  margin: 15px 0;
+}
+
+.error { border:5px solid red; background:#ffe5e5; }
+</style>
+</head>
+
+<body>
+
+<h2>Laporan Dinas Banjarsari</h2>
+
+<select id="shift">
+<option value="">Pilih Shift</option>
+<option>Malam</option>
+<option>Pagi</option>
+<option>Sore</option>
+</select>
+
+<label>PPKA</label>
+<select id="ppka" onchange="syncAll()"></select>
+<input type="checkbox" class="checkbox" id="chk_ppka" onchange="toggle('ppka')"> Job PPKA
+<select id="m_ppka" style="display:none;" onchange="syncAll()"></select>
+
+<label>PLR 1</label>
+<select id="plr1" onchange="syncAll()"></select>
+
+<label>PLR 2</label>
+<select id="plr2" onchange="syncAll()"></select>
+<input type="checkbox" class="checkbox" id="chk_plr" onchange="toggle('plr')"> Job PLR
+<select id="m_plr" style="display:none;" onchange="syncAll()"></select>
+<select id="m_plr2" style="display:none;" onchange="syncAll()"></select>
+
+<label>PRS</label>
+<select id="prs" onchange="syncAll()"></select>
+<input type="checkbox" class="checkbox" id="chk_prs" onchange="toggle('prs')"> Job PRS
+<select id="m_prs" style="display:none;" onchange="syncAll()"></select>
+
+<label>KAMTIB</label>
+<select id="sec"></select>
+
+<select id="cuaca">
+<option value="">Pilih Cuaca</option>
+<option>Cerah</option>
+<option>Berawan</option>
+<option>Hujan</option>
+</select>
+
+<input id="j1" class="input-jalur" placeholder="Jalur I">
+<input id="j2" class="input-jalur" placeholder="Jalur II">
+<input id="j3" class="input-jalur" placeholder="Jalur III">
+<input id="j4" class="input-jalur" placeholder="Jalur Badug">
+
+<button onclick="kirimWA()">Kirim Laporan Dinas</button>
+
+<script>
+
+/* AUTO WAKTU */
+function autoWaktu(){
+  let now = new Date();
+  let jam = now.getHours();
+
+  let shift = "";
+  let tanggal = new Date(now);
+
+  if(jam >= 0 && jam <= 6){
     shift = "Malam";
   } 
-  else if(jam >= 23){
+  else if(jam >= 7 && jam <= 14){
     shift = "Pagi";
+  } 
+  else if(jam >= 15 && jam <= 22){
+    shift = "Sore";
+  } 
+  else if(jam >= 23){
+    shift = "Malam";
     tanggal.setDate(tanggal.getDate() + 1);
   }
 
@@ -144,7 +252,7 @@ const ORANG = {
 "Diky Yoga Pratama": "+62 889-9291-2004",
 "Nandika Maulana": "+62 857-2238-9582",
 "Eric Fadhilah Nopani": "+62 821-8653-5108",
-"Oktapian Cahaya Bangun": "+62 857-2724-9619",
+"Oktapian Cahya Bangun": "+62 857-2724-9619",
 "Fajar Prayogo": "+62 813-9045-3960",
 "Sujono": "+62 852-4331-3449",
 "Deny Setiawan": "+62 813-7315-9093",
@@ -176,7 +284,7 @@ const KAMTIB = {
 /* ROLE TERPISAH */
 const ROLE = {
 ppka: ["Hendi Putra","Wahyu Ramanda","Makmun","Nicko Ramadhan","Akhirudin Akbar","Bambang Ardiansyah"],
-plr: ["Iqbal Mohamad Alim","Diky Yoga Pratama","Nandika Maulana","Eric Fadhilah Nopani","Oktapian Cahaya Bangun","Fajar Prayogo","Sujono","Deny Setiawan","Akhirudin Akbar","Bambang Ardiansyah"],
+plr: ["Iqbal Mohamad Alim","Diky Yoga Pratama","Nandika Maulana","Eric Fadhilah Nopani","Oktapian Cahya Bangun","Fajar Prayogo","Sujono","Deny Setiawan","Akhirudin Akbar","Bambang Ardiansyah"],
 prs: ["APRIANDI","M. Fachri Fane","Ratanca Yuda","Tri Ramadani","Akhirudin Akbar","Bambang Ardiansyah"]
 };
 
@@ -259,7 +367,11 @@ let prs=document.getElementById("prs").value;
 let sec=document.getElementById("sec").value;
 
 let txt=`*Laporan ${shift} Stasiun Banjarsari*
-Hari/Tanggal : ${(window.tanggalOtomatis || new Date()).toLocaleDateString("id-ID",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}
+Hari/Tanggal : ${
+  (window.tanggalOtomatis || new Date()).toLocaleDateString("id-ID",{weekday:"long"})
+}/${
+  (window.tanggalOtomatis || new Date()).toLocaleDateString("id-ID",{day:"numeric",month:"long",year:"numeric"})
+}
 
 A. PERKA & LANGSIRAN : Mancarli
 ${rapi("PPKA", ppka)}
@@ -271,7 +383,6 @@ if(m) txt+=`\n${rapi("Job PPKA", m)}\n${rapi("HP", MAGANG[m])}`;
 }
 
 txt+=`
-
 ${
   plr2 === "Kosong"
   ? `${rapi("PLR", plr1)}\n${rapi("HP", ORANG[plr1])}`
@@ -287,7 +398,6 @@ if(m2) txt+=`\n${rapi("Job PLR", m2)}\n${rapi("HP", MAGANG[m2])}`;
 }
 
 txt+=`
-
 ${rapi("PRS", prs)}
 ${rapi("HP", ORANG[prs])}`;
 
@@ -303,8 +413,8 @@ Kondisi Perka Singkat :
 ■ Kondisi Peralatan  Baik 
 
 B. KAMTIB :
-${rapi("Security", sec)}
-${rapi("HP", KAMTIB[sec])}
+■ Kondusif dan Mancarli
+${rapi("1 Personil Security", sec)}
 
 C. Cuaca : ${cuaca}
 
